@@ -1,4 +1,4 @@
-import HeroSlider from "../components/home/HeroSlider";
+import HeroSlider from "../Components/Home/HeroSlider";
 import CategorySection from "../Components/Home/CategorySection";
 
 export default function Home() {
