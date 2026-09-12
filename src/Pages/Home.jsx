@@ -1,24 +1,24 @@
-import HeroSlider from "../Components/Home/HeroSlider";
+import HeroSlider from "../components/home/HeroSlider";
+import CategorySection from "../Components/Home/CategorySection";
 
 export default function Home() {
   return (
     <main>
+      {/* Hero */}
       <HeroSlider />
 
-      {/* Temporary section */}
-      <section className="bg-ivory px-6 py-24 text-center">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-burgundy">
+      {/* Shop By Category */}
+      <CategorySection />
+
+      {/* Temporary placeholder for next section */}
+      <section className="bg-white px-6 py-24 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-burgundy">
           Coming Next
         </p>
 
-        <h2 className="font-display text-4xl text-charcoal md:text-5xl">
-          Shop by Category
+        <h2 className="mt-3 font-display text-4xl text-charcoal">
+          New Arrivals
         </h2>
-
-        <p className="mx-auto mt-4 max-w-xl text-gray-600">
-          The next section of the Latasha homepage will showcase our
-          collections.
-        </p>
       </section>
     </main>
   );

@@ -18,7 +18,7 @@ export default function Navbar() {
             href="/"
             className="font-display text-3xl font-semibold tracking-wide text-burgundy"
           >
-            LATASHA
+            LATARSHAS CONSIGNMENT
           </a>
 
           {/* Desktop Navigation */}
