@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
+
 export default function CategoryCard({ category }) {
   return (
-    <a
-      href={`/shop?category=${category.slug}`}
+    <Link
+      to={`/shop?category=${category.slug}`}
       className="group relative block overflow-hidden bg-gray-100"
     >
       {/* Category Image */}
@@ -31,6 +33,6 @@ export default function CategoryCard({ category }) {
           </span>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

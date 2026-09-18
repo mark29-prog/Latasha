@@ -1,7 +1,19 @@
+
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { cartCount } = useCart();
+
+  const navigationLinks = [
+    { name: "Home", path: "/" },
+    { name: "Shop", path: "/shop" },
+    { name: "New Arrivals", path: "/new-arrivals" },
+    { name: "Collections", path: "/collections" },
+    { name: "About", path: "/about" },
+  ];
 
   return (
     <>
@@ -10,60 +22,37 @@ export default function Navbar() {
         FREE SHIPPING ON ORDERS OVER GHC 300
       </div>
 
+      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur-md">
         <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-          
+
           {/* Logo */}
-          <a
-            href="/"
+          <Link
+            to="/"
             className="font-display text-3xl font-semibold tracking-wide text-burgundy"
           >
-            LATARSHAS CONSIGNMENT
-          </a>
+            LATASHA CONSIGNMENT
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-8 lg:flex">
-            <a
-              href="/"
-              className="text-sm font-medium text-charcoal transition hover:text-burgundy"
-            >
-              Home
-            </a>
-
-            <a
-              href="/shop"
-              className="text-sm font-medium text-charcoal transition hover:text-burgundy"
-            >
-              Shop
-            </a>
-
-            <a
-              href="/new-arrivals"
-              className="text-sm font-medium text-charcoal transition hover:text-burgundy"
-            >
-              New Arrivals
-            </a>
-
-            <a
-              href="/collections"
-              className="text-sm font-medium text-charcoal transition hover:text-burgundy"
-            >
-              Collections
-            </a>
-
-            <a
-              href="/about"
-              className="text-sm font-medium text-charcoal transition hover:text-burgundy"
-            >
-              About
-            </a>
+            {navigationLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-sm font-medium text-charcoal transition hover:text-burgundy"
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
 
           {/* Desktop Actions */}
           <div className="hidden items-center gap-5 lg:flex">
-            
+
             {/* Search */}
             <button
+              type="button"
               aria-label="Search"
               className="text-charcoal transition hover:text-burgundy"
             >
@@ -82,6 +71,7 @@ export default function Navbar() {
 
             {/* Wishlist */}
             <button
+              type="button"
               aria-label="Wishlist"
               className="text-charcoal transition hover:text-burgundy"
             >
@@ -98,30 +88,37 @@ export default function Navbar() {
             </button>
 
             {/* Cart */}
-            <button
-              aria-label="Shopping cart"
-              className="relative text-charcoal transition hover:text-burgundy"
+            <Link
+              to="/cart"
+              aria-label={`Shopping cart with ${cartCount} items`}
+              className="relative flex h-10 w-10 items-center justify-center text-charcoal transition hover:text-burgundy"
             >
               <svg
-                width="21"
-                height="21"
-                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
                 fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
                 stroke="currentColor"
-                strokeWidth="1.7"
+                className="h-5 w-5"
               >
-                <path d="M4 5h2l2 11h9l2-8H7" />
-                <circle cx="10" cy="20" r="1" />
-                <circle cx="17" cy="20" r="1" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.567 0 1.07-.379 1.226-.924l1.357-4.75a.75.75 0 0 0-.722-.956H5.106m2.394 6.63L5.106 5.272M7.5 14.25 5.106 5.272M7.5 14.25h10.5m-10.5 0h-1.5"
+                />
               </svg>
 
-              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-burgundy text-[9px] text-white">
-                0
-              </span>
-            </button>
+              {/* Cart Count */}
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-burgundy px-1 text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
 
             {/* Account */}
             <button
+              type="button"
               aria-label="Account"
               className="text-charcoal transition hover:text-burgundy"
             >
@@ -139,40 +136,86 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            className="lg:hidden"
-          >
-            <div className="space-y-1.5">
-              <span className="block h-px w-6 bg-charcoal" />
-              <span className="block h-px w-6 bg-charcoal" />
-              <span className="block h-px w-6 bg-charcoal" />
-            </div>
-          </button>
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-3 lg:hidden">
+
+            {/* Mobile Cart */}
+            <Link
+              to="/cart"
+              aria-label={`Shopping cart with ${cartCount} items`}
+              className="relative flex h-10 w-10 items-center justify-center text-charcoal"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.567 0 1.07-.379 1.226-.924l1.357-4.75a.75.75 0 0 0-.722-.956H5.106m2.394 6.63L5.106 5.272M7.5 14.25 5.106 5.272M7.5 14.25h10.5m-10.5 0h-1.5"
+                />
+              </svg>
+
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-burgundy px-1 text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={
+                mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
+              }
+              aria-expanded={mobileMenuOpen}
+              className="flex h-10 w-10 items-center justify-center"
+            >
+              <div className="space-y-1.5">
+                <span className="block h-px w-6 bg-charcoal" />
+                <span className="block h-px w-6 bg-charcoal" />
+                <span className="block h-px w-6 bg-charcoal" />
+              </div>
+            </button>
+          </div>
         </nav>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="border-t border-black/5 bg-white px-5 py-6 lg:hidden">
             <div className="flex flex-col gap-5">
-              {[
-                ["Home", "/"],
-                ["Shop", "/shop"],
-                ["New Arrivals", "/new-arrivals"],
-                ["Collections", "/collections"],
-                ["About", "/about"],
-              ].map(([name, path]) => (
-                <a
-                  key={name}
-                  href={path}
+              {navigationLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-sm font-medium text-charcoal transition hover:text-burgundy"
                 >
-                  {name}
-                </a>
+                  {link.name}
+                </Link>
               ))}
+
+              {/* Mobile Wishlist */}
+              <button
+                type="button"
+                className="text-left text-sm font-medium text-charcoal transition hover:text-burgundy"
+              >
+                Wishlist
+              </button>
+
+              {/* Mobile Account */}
+              <button
+                type="button"
+                className="text-left text-sm font-medium text-charcoal transition hover:text-burgundy"
+              >
+                Account
+              </button>
             </div>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const slides = [
   {
@@ -133,8 +134,8 @@ export default function HeroSlider() {
                 {/* CTA */}
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   
-                  <a
-                    href="/shop"
+                  <Link
+                    to="/shop"
                     className="group inline-flex items-center justify-center gap-4 bg-burgundy px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white transition duration-300 hover:bg-burgundy-dark"
                   >
                     Shop Now
@@ -142,14 +143,14 @@ export default function HeroSlider() {
                     <span className="transition-transform duration-300 group-hover:translate-x-1">
                       →
                     </span>
-                  </a>
+                  </Link>
 
-                  <a
-                    href="/collections"
+                  <Link
+                    to="/collections"
                     className="inline-flex items-center justify-center border border-white/70 bg-white/5 px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm transition duration-300 hover:bg-white hover:text-charcoal"
                   >
                     Explore Collection
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
