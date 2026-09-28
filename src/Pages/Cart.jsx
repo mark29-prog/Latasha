@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { getFeaturedProducts } from "../data/products";
+import useCatalog from "../hooks/useCatalog";
 import ProductCard from "../Components/Home/ProductCard";
 
 const SHIPPING_THRESHOLD = 300;
 const SHIPPING_FEE = 25;
 
 export default function Cart() {
+  const { products } = useCatalog();
   const {
     cartItems,
     cartCount,
@@ -51,7 +52,7 @@ export default function Cart() {
           </h2>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6">
-            {getFeaturedProducts()
+            {products.filter((product) => product.is_featured)
               .slice(0, 4)
               .map((product) => (
                 <ProductCard
@@ -110,7 +111,7 @@ export default function Cart() {
 
             return (
               <div
-                key={item.id}
+              key={item.cartItemId || `${item.id}-${item.size || ""}`}
                 className="flex gap-4 py-6 sm:gap-6"
               >
                 {/* Image */}
@@ -145,7 +146,7 @@ export default function Cart() {
 
                     <button
                       type="button"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.id, item.size)}
                       aria-label={`Remove ${item.name}`}
                       className="text-sm text-gray-400 transition hover:text-red-600"
                     >
@@ -158,7 +159,7 @@ export default function Cart() {
                     <div className="flex items-center border border-charcoal/20">
                       <button
                         type="button"
-                        onClick={() => decreaseQuantity(item.id)}
+                        onClick={() => decreaseQuantity(item.id, item.size)}
                         aria-label="Decrease quantity"
                         className="px-3 py-2 text-charcoal transition hover:bg-ivory"
                       >
@@ -171,7 +172,7 @@ export default function Cart() {
 
                       <button
                         type="button"
-                        onClick={() => increaseQuantity(item.id)}
+                        onClick={() => increaseQuantity(item.id, item.size)}
                         aria-label="Increase quantity"
                         className="px-3 py-2 text-charcoal transition hover:bg-ivory"
                       >
@@ -244,7 +245,7 @@ export default function Cart() {
         </h2>
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6">
-          {getFeaturedProducts()
+          {products.filter((product) => product.is_featured)
             .slice(0, 4)
             .map((product) => (
               <ProductCard

@@ -1,7 +1,9 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { useCart } from "../../context/CartContext";
+import BrandLogo from "./BrandLogo";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,9 +20,9 @@ export default function Navbar() {
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-charcoal px-4 py-2 text-center text-xs tracking-[0.2em] text-white">
+      {/* <div className="bg-charcoal px-4 py-2 text-center text-xs tracking-[0.2em] text-white">
         FREE SHIPPING ON ORDERS OVER GHC 300
-      </div>
+      </div> */}
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur-md">
@@ -29,9 +31,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="font-display text-3xl font-semibold tracking-wide text-burgundy"
+            aria-label="Latasha Consignment home"
+            className="shrink-0 transition-opacity hover:opacity-80"
           >
-            LATASHA CONSIGNMENT
+            <BrandLogo className="h-12 w-[188px] sm:w-[230px]" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -187,8 +190,15 @@ export default function Navbar() {
         </nav>
 
         {/* Mobile Menu */}
+        <AnimatePresence initial={false}>
         {mobileMenuOpen && (
-          <div className="border-t border-black/5 bg-white px-5 py-6 lg:hidden">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t border-black/5 bg-white px-5 py-6 lg:hidden"
+          >
             <div className="flex flex-col gap-5">
               {navigationLinks.map((link) => (
                 <Link
@@ -217,8 +227,9 @@ export default function Navbar() {
                 Account
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </header>
     </>
   );

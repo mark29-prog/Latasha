@@ -9,7 +9,7 @@ export default function CategoryCard({ category }) {
       {/* Category Image */}
       <div className="aspect-[4/5] overflow-hidden">
         <img
-          src={category.image}
+          src={category.image_url || category.image}
           alt={category.name}
           loading="lazy"
           className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"

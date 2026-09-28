@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { api } from "../api/client";
 
 const CartContext = createContext();
 
@@ -18,6 +19,23 @@ export function CartProvider({ children }) {
     }
   });
 
+  useEffect(() => {
+    api.cart().then((cart) => {
+      const remoteItems = (cart.items || []).map((item) => ({
+        id: item.product,
+        cartItemId: item.id,
+        name: item.product_name,
+        image: item.product_image || "",
+        price: Number(item.unit_price),
+        salePrice: null,
+        quantity: item.quantity,
+        size: item.size_name || null,
+        sizeId: item.size,
+      }));
+      setCartItems((current) => current.length ? current : remoteItems);
+    }).catch((error) => console.warn("Cart API is unavailable:", error.message));
+  }, []);
+
   // Save cart whenever it changes
   useEffect(() => {
     try {
@@ -30,7 +48,14 @@ export function CartProvider({ children }) {
   // Add product to cart (optionally with a quantity and size)
   const addToCart = (product, options = {}) => {
     const quantity = options.quantity ?? 1;
-    const size = options.size ?? product.size ?? null;
+    const size = options.size ?? product.size ?? product.sizeOptions?.[0]?.size.name ?? null;
+    const sizeVariant = product.sizeOptions?.find((variant) => variant.size.name === size);
+    api.addCartItem({ product: product.id, size: sizeVariant?.size.id ?? null, quantity })
+      .then((cart) => {
+        const serverItem = cart.items.find((item) => item.product === product.id && item.size === (sizeVariant?.size.id ?? null));
+        if (serverItem) setCartItems((items) => items.map((item) => item.id === product.id && item.size === size ? { ...item, cartItemId: serverItem.id, price: Number(serverItem.unit_price), image: serverItem.product_image || item.image } : item));
+      })
+      .catch((error) => console.warn("Unable to sync cart:", error.message));
 
     setCartItems((currentItems) => {
       const incoming = { ...product, size };
@@ -54,6 +79,8 @@ export function CartProvider({ children }) {
 
   // Remove product line completely
   const removeFromCart = (productId, size = null) => {
+    const matches = cartItems.filter((item) => item.id === productId && (size === null || item.size === size));
+    matches.forEach((item) => { if (item.cartItemId) api.removeCartItem(item.cartItemId).catch((error) => console.warn("Unable to update cart:", error.message)); });
     setCartItems((currentItems) =>
       currentItems.filter((item) => {
         if (size) {
@@ -67,6 +94,8 @@ export function CartProvider({ children }) {
 
   // Increase quantity
   const increaseQuantity = (productId, size = null) => {
+    const existing = cartItems.find((item) => item.id === productId && (size === null || item.size === size));
+    if (existing?.cartItemId) api.updateCartItem(existing.cartItemId, existing.quantity + 1).catch((error) => console.warn("Unable to update cart:", error.message));
     setCartItems((currentItems) =>
       currentItems.map((item) =>
         item.id === productId && (size === null || item.size === size)
@@ -78,6 +107,11 @@ export function CartProvider({ children }) {
 
   // Decrease quantity
   const decreaseQuantity = (productId, size = null) => {
+    const existing = cartItems.find((item) => item.id === productId && (size === null || item.size === size));
+    if (existing?.cartItemId) {
+      if (existing.quantity <= 1) api.removeCartItem(existing.cartItemId).catch((error) => console.warn("Unable to update cart:", error.message));
+      else api.updateCartItem(existing.cartItemId, existing.quantity - 1).catch((error) => console.warn("Unable to update cart:", error.message));
+    }
     setCartItems((currentItems) =>
       currentItems
         .map((item) =>
@@ -91,6 +125,7 @@ export function CartProvider({ children }) {
 
   // Remove everything
   const clearCart = () => {
+    api.clearCart().catch((error) => console.warn("Unable to clear server cart:", error.message));
     setCartItems([]);
   };
 

@@ -6,17 +6,19 @@
   --font-display: "Playfair Display", serif;
   --font-body: "DM Sans", sans-serif;
 
-  --color-burgundy: #7a1f35;
-  --color-burgundy-dark: #5d1728;
-  --color-gold: #c9a66b;
-  --color-ivory: #f7f3ef;
-  --color-charcoal: #222222;
+  --color-burgundy: #744257;
+  --color-burgundy-dark: #542e40;
+  --color-gold: #b99a70;
+  --color-ivory: #f7f5f2;
+  --color-charcoal: #252323;
+  --color-blush: #eee5e8;
+  --color-stone: #e9e5df;
 }
 
 :root {
   font-family: "DM Sans", sans-serif;
-  color: #222222;
-  background: #f7f3ef;
+  color: #252323;
+  background: #f7f5f2;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }

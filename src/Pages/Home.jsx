@@ -4,7 +4,10 @@ import CategorySection from "../Components/Home/CategorySection";
 import ProductSection from "../Components/Home/ProductSection";
 import ProductCard from "../Components/Home/ProductCard";
 import { useCart } from "../context/CartContext";
-import { getNewArrivals } from "../data/products";
+import useCatalog from "../hooks/useCatalog";
+import { useState } from "react";
+import { api } from "../api/client";
+import Reveal from "../Components/Layout/Reveal";
 
 const benefits = [
   {
@@ -27,7 +30,18 @@ const benefits = [
 
 export default function Home() {
   const { addToCart } = useCart();
-  const featured = getNewArrivals().slice(0, 4);
+  const { products } = useCatalog();
+  const featured = products.filter((product) => product.is_new).slice(0, 4);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+  const subscribe = async (event) => {
+    event.preventDefault();
+    try {
+      const result = await api.subscribe(newsletterEmail);
+      setNewsletterMessage(result.message || "Subscription confirmed.");
+      setNewsletterEmail("");
+    } catch (error) { setNewsletterMessage(error.message); }
+  };
 
   return (
     <main>
@@ -38,9 +52,9 @@ export default function Home() {
       <ProductSection />
 
       {/* Featured Collection */}
-      <section className="bg-ivory px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+      <Reveal as="section" animateText className="bg-ivory px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end" distance={18}>
             <div className="max-w-2xl">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-burgundy">
                 Curated for you
@@ -66,25 +80,23 @@ export default function Home() {
                 →
               </span>
             </Link>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6">
-            {featured.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-              />
+            {featured.map((product, index) => (
+              <Reveal key={product.id} delay={index * 0.07} distance={28}>
+                <ProductCard product={product} onAddToCart={addToCart} />
+              </Reveal>
             ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* Benefits */}
-      <section className="border-t border-black/5 bg-white px-5 py-16 sm:px-8 lg:px-12">
+      <Reveal as="section" animateText className="border-t border-black/5 bg-white px-5 py-16 sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((benefit) => (
-            <div key={benefit.title} className="text-center">
+          {benefits.map((benefit, index) => (
+            <Reveal key={benefit.title} delay={index * 0.08} distance={20} className="text-center">
               <h3 className="font-display text-lg text-charcoal">
                 {benefit.title}
               </h3>
@@ -92,14 +104,14 @@ export default function Home() {
               <p className="mt-2 text-sm text-gray-500">
                 {benefit.description}
               </p>
-            </div>
+            </Reveal>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* Newsletter CTA */}
-      <section className="relative overflow-hidden bg-charcoal px-5 py-20 text-center sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-2xl">
+      <Reveal as="section" animateText className="relative overflow-hidden bg-charcoal px-5 py-20 text-center sm:px-8 lg:px-12">
+        <Reveal className="mx-auto max-w-2xl" distance={28}>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">
             Join the List
           </p>
@@ -115,10 +127,12 @@ export default function Home() {
 
           <form
             className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={subscribe}
           >
             <input
               type="email"
+              value={newsletterEmail}
+              onChange={(event) => setNewsletterEmail(event.target.value)}
               required
               placeholder="Your email address"
               aria-label="Email address"
@@ -132,8 +146,9 @@ export default function Home() {
               Subscribe
             </button>
           </form>
-        </div>
-      </section>
+          {newsletterMessage && <p role="status" className="mt-4 text-sm text-white">{newsletterMessage}</p>}
+        </Reveal>
+      </Reveal>
     </main>
   );
 }

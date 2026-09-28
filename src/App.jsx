@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   BrowserRouter,
   Routes,
@@ -27,6 +28,35 @@ function ScrollToTop() {
   return null;
 }
 
+function RouteContent() {
+  const location = useLocation();
+  const reduceMotion = useReducedMotion();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        className="flex-1"
+        initial={{ opacity: 0, y: reduceMotion ? 0 : 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: reduceMotion ? 0 : -10 }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.38, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Routes location={location}>
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/new-arrivals" element={<NewArrivals />} />
+          <Route path="/collections" element={<Collections />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -35,19 +65,7 @@ function App() {
       <div className="flex min-h-screen flex-col">
         <Navbar />
 
-        <div className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/new-arrivals" element={<NewArrivals />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
+        <RouteContent />
 
         <Footer />
       </div>

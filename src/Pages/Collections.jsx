@@ -1,11 +1,7 @@
 import { Link } from "react-router-dom";
 import ProductCard from "../Components/Home/ProductCard";
 import { useCart } from "../context/CartContext";
-import {
-  categories,
-  getFeaturedProducts,
-  getProductsByCategory,
-} from "../data/products";
+import useCatalog from "../hooks/useCatalog";
 
 const collections = [
   {
@@ -33,7 +29,8 @@ const collections = [
 
 export default function Collections() {
   const { addToCart } = useCart();
-  const featured = getFeaturedProducts().slice(0, 4);
+  const { products, categories } = useCatalog();
+  const featured = products.filter((product) => product.is_featured).slice(0, 4);
 
   return (
     <main className="bg-white">
@@ -59,7 +56,7 @@ export default function Collections() {
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
         <div className="space-y-16">
           {collections.map((collection, index) => {
-            const items = getProductsByCategory(collection.slug).slice(0, 4);
+            const items = products.filter((product) => product.categorySlug === collection.slug).slice(0, 4);
 
             return (
               <div key={collection.id}>
@@ -125,7 +122,7 @@ export default function Collections() {
                 className="group relative block aspect-[4/5] overflow-hidden bg-gray-100"
               >
                 <img
-                  src={category.image}
+                  src={category.image_url || category.image}
                   alt={category.name}
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"

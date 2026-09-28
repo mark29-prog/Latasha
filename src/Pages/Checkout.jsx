@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { api } from "../api/client";
 
 const SHIPPING_THRESHOLD = 300;
 const SHIPPING_FEE = 25;
 
 export default function Checkout() {
   const { cartItems, cartTotal, clearCart } = useCart();
+  const requiresLogin = !localStorage.getItem("latasha-access-token");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -16,10 +18,14 @@ export default function Checkout() {
     address: "",
     city: "",
     region: "",
+    username: "",
+    password: "",
   });
 
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const shipping = cartTotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = cartTotal + shipping;
@@ -29,13 +35,25 @@ export default function Checkout() {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
-    const number = `LAT-${Date.now().toString().slice(-6)}`;
-    setOrderNumber(number);
-    setOrderPlaced(true);
-    clearCart();
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      if (!localStorage.getItem("latasha-access-token")) {
+        const session = await api.login({ username: formData.username, password: formData.password });
+        localStorage.setItem("latasha-access-token", session.access);
+        localStorage.setItem("latasha-refresh-token", session.refresh);
+      }
+      const order = await api.checkout({
+        shipping_address: { first_name: formData.firstName, last_name: formData.lastName, email: formData.email, phone: formData.phone, address: formData.address, city: formData.city, region: formData.region },
+        billing_address: {}, shipping_total: shipping, currency: "GHS",
+      });
+      setOrderNumber(order.number);
+      setOrderPlaced(true);
+      clearCart();
+    } catch (error) { setSubmitError(error.message); }
+    finally { setSubmitting(false); }
   };
 
   // Order Confirmation
@@ -113,6 +131,14 @@ export default function Checkout() {
       >
         {/* Form */}
         <div className="space-y-10">
+          {requiresLogin && <section>
+            <h2 className="mb-5 border-b border-black/10 pb-3 text-sm font-semibold uppercase tracking-[0.18em] text-charcoal">Account</h2>
+            <p className="mb-4 text-sm text-gray-600">Sign in to place your order.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input required name="username" autoComplete="username" placeholder="Username" value={formData.username} onChange={handleChange} className={inputClass} />
+              <input required type="password" name="password" autoComplete="current-password" placeholder="Password" value={formData.password} onChange={handleChange} className={inputClass} />
+            </div>
+          </section>}
           {/* Contact */}
           <section>
             <h2 className="mb-5 border-b border-black/10 pb-3 text-sm font-semibold uppercase tracking-[0.18em] text-charcoal">
@@ -210,8 +236,7 @@ export default function Checkout() {
             </h2>
 
             <div className="border border-dashed border-charcoal/20 bg-ivory p-5 text-sm text-gray-600">
-              This is a demo store. No payment will be taken — placing an order
-              simply confirms your cart.
+              Your order will be saved to your account. Payment can be arranged after confirmation.
             </div>
           </section>
         </div>
@@ -261,11 +286,13 @@ export default function Checkout() {
             </div>
           </div>
 
+          {submitError && <p role="alert" className="mb-4 text-sm text-red-700">{submitError}</p>}
           <button
             type="submit"
+            disabled={submitting}
             className="mt-6 w-full bg-burgundy px-6 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-burgundy-dark"
           >
-            Place Order
+            {submitting ? "Placing Order…" : "Place Order"}
           </button>
 
           <Link

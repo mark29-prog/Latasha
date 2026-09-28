@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../Components/Home/ProductCard";
 import { useCart } from "../context/CartContext";
-import { categories, products } from "../data/products";
+import useCatalog from "../hooks/useCatalog";
 
 const sortOptions = [
   { value: "featured", label: "Featured" },
@@ -14,6 +14,7 @@ const sortOptions = [
 
 export default function Shop() {
   const { addToCart } = useCart();
+  const { categories, products, loading, error } = useCatalog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("featured");
 
@@ -136,8 +137,10 @@ export default function Shop() {
           {filteredProducts.length === 1 ? "product" : "products"}
         </p>
 
+        {loading && <p className="py-10 text-center text-gray-500">Loading products…</p>}
+        {error && <p role="alert" className="py-10 text-center text-red-700">{error}</p>}
         {/* Product Grid */}
-        {filteredProducts.length > 0 ? (
+        {!loading && !error && filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-14">
             {filteredProducts.map((product) => (
               <ProductCard

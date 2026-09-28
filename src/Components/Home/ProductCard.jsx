@@ -1,14 +1,66 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../../api/client";
+import { gsap } from "gsap";
+import { useReducedMotion } from "motion/react";
 
 export default function ProductCard({ product, onAddToCart }) {
+  const cardRef = useRef(null);
+  const reduceMotion = useReducedMotion();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState(null);
+  const [wishlistError, setWishlistError] = useState("");
+
+  const toggleWishlist = async () => {
+    setWishlistError("");
+    try {
+      if (wishlistItemId) {
+        await api.removeWishlistItem(wishlistItemId);
+        setWishlistItemId(null);
+        setIsWishlisted(false);
+      } else {
+        const item = await api.addWishlistItem(product.id);
+        setWishlistItemId(item.id);
+        setIsWishlisted(true);
+      }
+    } catch (error) { setWishlistError(error.message); }
+  };
 
   const displayPrice = product.salePrice ?? product.price;
   const hasSale = product.salePrice && product.salePrice < product.price;
 
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || reduceMotion || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const onPointerMove = (event) => {
+      const bounds = card.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+      gsap.to(card, {
+        rotateY: x * 5,
+        rotateX: y * -5,
+        transformPerspective: 900,
+        transformOrigin: "center center",
+        duration: 0.35,
+        ease: "power2.out",
+        overwrite: true,
+      });
+    };
+    const resetTilt = () => gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.65, ease: "elastic.out(1, 0.55)", overwrite: true });
+
+    card.addEventListener("pointermove", onPointerMove);
+    card.addEventListener("pointerleave", resetTilt);
+    return () => {
+      card.removeEventListener("pointermove", onPointerMove);
+      card.removeEventListener("pointerleave", resetTilt);
+      gsap.killTweensOf(card);
+      gsap.set(card, { clearProps: "transform" });
+    };
+  }, [reduceMotion]);
+
   return (
-    <article className="group">
+    <article ref={cardRef} className="group will-change-transform">
       {/* Product Image */}
       <div className="relative overflow-hidden bg-gray-100">
         <Link to={`/product/${product.id}`} className="block">
@@ -40,7 +92,7 @@ export default function ProductCard({ product, onAddToCart }) {
         {/* Wishlist Button */}
         <button
           type="button"
-          onClick={() => setIsWishlisted(!isWishlisted)}
+          onClick={toggleWishlist}
           aria-label={
             isWishlisted
               ? `Remove ${product.name} from wishlist`
@@ -65,6 +117,7 @@ export default function ProductCard({ product, onAddToCart }) {
             />
           </svg>
         </button>
+        {wishlistError && <p role="alert" className="absolute right-2 top-14 max-w-40 bg-white p-2 text-xs text-red-700">{wishlistError}</p>}
 
         {/* Add to Cart */}
         <div className="absolute inset-x-3 bottom-3 translate-y-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">

@@ -1,17 +1,19 @@
 import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import { useCart } from "../../context/CartContext";
-import { getFeaturedProducts } from "../../data/products";
+import useCatalog from "../../hooks/useCatalog";
+import Reveal from "../Layout/Reveal";
 
 export default function ProductSection() {
   const { addToCart } = useCart();
-  const products = getFeaturedProducts().slice(0, 8);
+  const { products: catalog } = useCatalog();
+  const products = catalog.filter((product) => product.is_featured).slice(0, 8);
 
   return (
-    <section className="bg-white px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+    <Reveal as="section" animateText className="bg-white px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+        <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end" distance={18}>
           <div className="max-w-2xl">
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-burgundy">
               Just arrived
@@ -37,29 +39,27 @@ export default function ProductSection() {
               →
             </span>
           </Link>
-        </div>
+        </Reveal>
 
         {/* Product Grid */}
         <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-14">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={addToCart}
-            />
+          {products.map((product, index) => (
+            <Reveal key={product.id} delay={index * 0.055} distance={28}>
+              <ProductCard product={product} onAddToCart={addToCart} />
+            </Reveal>
           ))}
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-14 flex justify-center">
+        <Reveal className="mt-14 flex justify-center" delay={0.12} distance={16}>
           <Link
             to="/new-arrivals"
             className="border border-charcoal px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-charcoal transition hover:border-burgundy hover:bg-burgundy hover:text-white"
           >
             Discover All Products
           </Link>
-        </div>
+        </Reveal>
       </div>
-    </section>
+    </Reveal>
   );
 }

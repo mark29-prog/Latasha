@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 import CategoryCard from "./CategoryCard";
-import { categories } from "../../data/products";
+import useCatalog from "../../hooks/useCatalog";
+import Reveal from "../Layout/Reveal";
 
 export default function CategorySection() {
+  const { categories } = useCatalog();
   return (
-    <section className="bg-ivory px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+    <Reveal as="section" animateText className="bg-ivory px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
       <div className="mx-auto max-w-7xl">
 
         {/* Section Header */}
-        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+        <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end" distance={18}>
           <div className="max-w-2xl">
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-burgundy">
               Explore the collection
@@ -34,15 +36,17 @@ export default function CategorySection() {
               →
             </span>
           </Link>
-        </div>
+        </Reveal>
 
         {/* Category Grid */}
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-          {categories.slice(0, 6).map((category) => (
-            <CategoryCard key={category.id} category={category} />
+          {categories.slice(0, 6).map((category, index) => (
+            <Reveal key={category.id} delay={index * 0.07} distance={30}>
+              <CategoryCard category={category} />
+            </Reveal>
           ))}
         </div>
       </div>
-    </section>
+    </Reveal>
   );
 }

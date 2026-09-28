@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useReducedMotion } from "motion/react";
+import { gsap } from "gsap";
+const HeroImageScene = lazy(() => import("../3d/HeroImageScene"));
 
 const slides = [
   {
@@ -8,8 +11,7 @@ const slides = [
     title: "Elegance Designed for Every Woman.",
     description:
       "Discover the latest Latasha collection, created for confidence, comfort and effortless style.",
-    image:
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=2200&q=85",
+    image: "/lady%201.jpg",
   },
   {
     id: 2,
@@ -17,8 +19,7 @@ const slides = [
     title: "Style That Speaks Without Saying a Word.",
     description:
       "Statement pieces, refined silhouettes and timeless details designed for the modern woman.",
-    image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=2200&q=85",
+    image: "/lady2.jpg",
   },
   {
     id: 3,
@@ -26,46 +27,110 @@ const slides = [
     title: "Your Style. Your Confidence. Your Latasha.",
     description:
       "Explore fresh silhouettes and effortless pieces made to become part of your signature style.",
-    image:
-      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=2200&q=85",
+    image: "/lady3.jpg",
+  },
+  {
+    id: 4,
+    eyebrow: "G-SHOCK EDIT",
+    title: "Built for Every Moment.",
+    description:
+      "Make a bold statement with the latest G-Shock styles, built for life on the move.",
+    image: "/g-shock.jpg",
   },
 ];
 
 export default function HeroSlider() {
+  const reduceMotion = useReducedMotion();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const slideRefs = useRef([]);
 
-  const nextSlide = () => {
+  useLayoutEffect(() => {
+    const slide = slideRefs.current[currentSlide];
+    if (!slide) return undefined;
+
+    const context = gsap.context(() => {
+      const image = slide.querySelector(".hero-slide-image");
+      const items = slide.querySelectorAll(".hero-slide-item");
+      const headingText = slide.querySelector(".hero-typewriter");
+      const timeline = gsap.timeline();
+
+      if (reduceMotion) {
+        gsap.set([image, items], { clearProps: "all" });
+        if (headingText) headingText.textContent = headingText.dataset.fullText;
+        return;
+      }
+
+      const fullHeading = headingText?.dataset.fullText ?? "";
+      if (headingText) headingText.textContent = "";
+      const typingProgress = { value: 0 };
+
+      timeline
+        .fromTo(image, { scale: 1.04 }, { scale: 1, duration: 0.9, ease: "power2.out" })
+        .fromTo(items, { autoAlpha: 0, y: 18 }, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.1,
+          ease: "power3.out",
+        }, 0.16)
+        .to(typingProgress, {
+          value: 1,
+          duration: Math.min(Math.max(fullHeading.length * 0.035, 0.9), 2.2),
+          ease: "none",
+          onUpdate: () => {
+            if (headingText) {
+              headingText.textContent = fullHeading.slice(
+                0,
+                Math.round(typingProgress.value * fullHeading.length),
+              );
+            }
+          },
+        }, 0.2);
+    }, slide);
+
+    return () => context.revert();
+  }, [currentSlide, reduceMotion]);
+
+  const nextSlide = useCallback(() => {
     setCurrentSlide((previous) =>
       previous === slides.length - 1 ? 0 : previous + 1
     );
-  };
+  }, []);
 
-  const previousSlide = () => {
+  const previousSlide = useCallback(() => {
     setCurrentSlide((previous) =>
       previous === 0 ? slides.length - 1 : previous - 1
     );
-  };
+  }, []);
 
   // Autoplay
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || reduceMotion) return;
 
     const timer = setInterval(() => {
       nextSlide();
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, reduceMotion, nextSlide]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyboard = (event) => {
+      const target = event.target;
+      const isEditing = target instanceof HTMLElement &&
+        (target.isContentEditable || target.matches("input, textarea, select"));
+
+      if (isEditing || event.altKey || event.ctrlKey || event.metaKey) return;
+
       if (event.key === "ArrowLeft") {
+        event.preventDefault();
         previousSlide();
       }
 
       if (event.key === "ArrowRight") {
+        event.preventDefault();
         nextSlide();
       }
     };
@@ -75,7 +140,7 @@ export default function HeroSlider() {
     return () => {
       window.removeEventListener("keydown", handleKeyboard);
     };
-  }, []);
+  }, [nextSlide, previousSlide]);
 
   return (
     <section
@@ -84,36 +149,40 @@ export default function HeroSlider() {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Slides */}
-      {slides.map((slide, index) => (
+        {slides.map((slide, index) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-all duration-[1200ms] ease-out ${
-            index === currentSlide
-              ? "visible scale-100 opacity-100"
-              : "invisible scale-[1.04] opacity-0"
-          }`}
+          ref={(element) => { slideRefs.current[index] = element; }}
+          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentSlide ? "z-[1] opacity-100" : "z-0 opacity-0 pointer-events-none"}`}
           aria-hidden={index !== currentSlide}
+          inert={index !== currentSlide}
         >
-          {/* Image */}
           <img
             src={slide.image}
-            alt={slide.title}
-            className="h-full w-full object-cover object-center"
+            alt=""
+            aria-hidden="true"
+            className="hero-slide-image absolute inset-0 h-full w-full object-cover object-center"
           />
-
           {/* Desktop Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/5" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
 
           {/* Mobile Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent lg:hidden" />
 
+          <Suspense fallback={null}>
+            <HeroImageScene />
+          </Suspense>
+
           {/* Content */}
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 z-10">
             <div className="mx-auto flex h-full max-w-7xl items-center px-6 sm:px-10 lg:px-12 xl:px-16">
-              <div className="max-w-3xl text-white">
+              <div
+                data-hero-content
+                className="hero-slide-content max-w-3xl text-white"
+              >
                 
                 {/* Eyebrow */}
-                <div className="mb-5 flex items-center gap-4">
+                <div className="hero-slide-item mb-5 flex items-center gap-4">
                   <span className="h-px w-10 bg-gold" />
 
                   <p className="text-xs font-semibold tracking-[0.35em] text-gold sm:text-sm">
@@ -122,17 +191,26 @@ export default function HeroSlider() {
                 </div>
 
                 {/* Heading */}
-                <h1 className="font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
-                  {slide.title}
+                <h1
+                  aria-label={slide.title}
+                  className="hero-slide-item font-display text-5xl font-medium leading-[1.02] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="hero-typewriter"
+                    data-full-text={slide.title}
+                  >
+                    {slide.title}
+                  </span>
                 </h1>
 
                 {/* Description */}
-                <p className="mt-6 max-w-xl text-sm leading-7 text-white/85 sm:text-base md:text-lg">
+                <p className="hero-slide-item mt-6 max-w-xl text-sm leading-7 text-white/85 sm:text-base md:text-lg">
                   {slide.description}
                 </p>
 
                 {/* CTA */}
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <div className="hero-slide-item mt-8 flex flex-col gap-3 sm:flex-row">
                   
                   <Link
                     to="/shop"
@@ -155,7 +233,7 @@ export default function HeroSlider() {
               </div>
             </div>
           </div>
-        </div>
+          </div>
       ))}
 
       {/* Bottom Controls */}

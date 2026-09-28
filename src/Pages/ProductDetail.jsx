@@ -2,19 +2,21 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ProductCard from "../Components/Home/ProductCard";
 import { useCart } from "../context/CartContext";
-import { getProductById, getRelatedProducts } from "../data/products";
+import useCatalog from "../hooks/useCatalog";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const { addToCart, cartItems } = useCart();
 
-  const product = getProductById(id);
+  const { products, loading } = useCatalog();
+  const product = products.find((item) => String(item.id) === String(id));
 
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
+  if (!product && loading) return <main className="mx-auto max-w-7xl px-5 py-24 text-center text-gray-500">Loading product…</main>;
   if (!product) {
     return (
       <main className="mx-auto max-w-7xl px-5 py-24 text-center lg:px-8">
@@ -38,12 +40,11 @@ export default function ProductDetail() {
 
   const inCart = cartItems.find((item) => item.id === product.id);
   const hasSale = product.salePrice && product.salePrice < product.price;
-  const relatedProducts = getRelatedProducts(product);
+  const relatedProducts = products.filter((item) => item.categorySlug === product.categorySlug && item.id !== product.id).slice(0, 4);
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i += 1) {
-      addToCart(product);
-    }
+    if (product.sizeOptions.length && !selectedSize) return;
+    addToCart(product, { quantity, size: selectedSize });
 
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -87,7 +88,7 @@ export default function ProductDetail() {
             <div className="overflow-hidden bg-gray-100">
               <div className="aspect-[4/5]">
                 <img
-                  src={product.images[activeImage]}
+                  src={product.images[activeImage] || product.image}
                   alt={product.name}
                   className="h-full w-full object-cover"
                 />
@@ -211,6 +212,7 @@ export default function ProductDetail() {
                     </button>
                   ))}
                 </div>
+                {!selectedSize && <p className="mt-2 text-xs text-gray-500">Choose a size to add this item to your cart.</p>}
               </div>
             )}
 

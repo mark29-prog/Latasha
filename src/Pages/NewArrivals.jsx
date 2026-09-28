@@ -1,10 +1,11 @@
 import ProductCard from "../Components/Home/ProductCard";
 import { useCart } from "../context/CartContext";
-import { getNewArrivals } from "../data/products";
+import useCatalog from "../hooks/useCatalog";
 
 export default function NewArrivals() {
   const { addToCart } = useCart();
-  const newArrivals = getNewArrivals();
+  const { products, loading, error } = useCatalog();
+  const newArrivals = products.filter((product) => product.is_new);
 
   return (
     <main className="bg-white">
@@ -28,7 +29,7 @@ export default function NewArrivals() {
 
       {/* Products */}
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-12">
-        {newArrivals.length > 0 ? (
+        {loading ? <p className="py-20 text-center text-gray-500">Loading products…</p> : error ? <p role="alert" className="py-20 text-center text-red-700">{error}</p> : newArrivals.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-14">
             {newArrivals.map((product) => (
               <ProductCard

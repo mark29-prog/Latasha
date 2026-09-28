@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
 
 export default function Footer() {
   const shopLinks = [
@@ -21,8 +22,8 @@ export default function Footer() {
         <div className="grid gap-12 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <h3 className="font-display text-2xl tracking-wide text-white">
-              LATASHA CONSIGNMENT
+            <h3>
+              <BrandLogo light className="h-12 w-[230px]" />
             </h3>
 
             <p className="mt-5 max-w-md text-sm leading-7 text-white/60">
